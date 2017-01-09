@@ -3,7 +3,7 @@ import re
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 
-SAMPLE_SIZES = [200, 600, 1000, 1400, 1800, 2200]
+SAMPLE_SIZES = [200, 400, 800, 1600]
 MAX_SAMPLE_SIZE = max(SAMPLE_SIZES)
 # MAX_SAMPLE_SIZE = 2200
 # SAMPLE_SIZE = 200
