@@ -15,7 +15,7 @@ NUMBER_OF_CV = 5
 
 def loadSamples():
     """Loads samples and labels from pickle and returns a list of samples, a list of sample labels and a list of label names."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples"
     try:
         g = open("{}samples_{}.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:

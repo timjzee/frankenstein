@@ -67,7 +67,7 @@ def processTexts():
 
 def saveSamples():
     """Save samples, category_labels and category_names to a pickle of a list."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples/"
     samples_structure = [samples, category_labels, category_names]
     g = open(samples_path + "samples_" + str(SAMPLE_SIZE) + ".pck", "wb")
     pickle.dump(samples_structure, g)

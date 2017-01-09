@@ -30,7 +30,7 @@ def getTokens():
 
 def loadTrainingSamples():
     """Loads samples and labels from pickle and returns a list of samples, a list of sample labels and a list of label names."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples/"
     try:
         g = open("{}samples_{}.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:
@@ -75,6 +75,20 @@ def getSamples(shift_number):
     return list_of_samples
 
 
+def loadSamples(shift):
+    """Checks whether samples have already been made and either loads them or calls getSamples."""
+    franken_smpls_path = "/Users/tim/GitHub/frankenstein/sampled_texts/franken_samples/"
+    try:
+        f = open("{}samples_{}-s{}.pck".format(franken_smpls_path, SAMPLE_SIZE, shift), "rb")
+        franken_samples = pickle.load(f)
+    except:
+        franken_samples = getSamples(shift)
+        f = open("{}samples_{}-s{}.pck".format(franken_smpls_path, SAMPLE_SIZE, shift), "wb")
+        pickle.dump(franken_samples, f)
+    f.close()
+    return franken_samples
+
+
 def classifyFrankenstein(test_smpls):
     """Classifies Frankenstein samples using samples with known authors."""
     train_lbls = np.array(training_labels)
@@ -108,7 +122,8 @@ def writeOutput(predicted, shift_num):
 def loopThroughSampleShifts():
     """Main loop for the handling of Frankenstein samples."""
     for shift in range(NUMBER_OF_SHIFTS):
-        test_samples = getSamples(shift)
+        # test_samples = getSamples(shift)
+        test_samples = loadSamples(shift)
         print("Shift {}: {} samples".format(shift, len(test_samples)))
         classifier_output = classifyFrankenstein(test_samples)
         writeOutput(classifier_output, shift)
