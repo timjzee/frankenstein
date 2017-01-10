@@ -9,13 +9,25 @@ from sklearn.metrics import confusion_matrix
 # from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 
-SAMPLE_SIZES = [200, 600, 1000, 1400, 1800, 2200]
-NUMBER_OF_CV = 5
+SAMPLE_SIZES = [100, 200, 400, 800]
+NUMBER_OF_CV = 10
+
+
+def getFunctionWords():
+    """Gets list of function words for feature vector."""
+    try:
+        f = open("/Users/tim/GitHub/frankenstein/function_words.pck", "rb")
+    except:
+        print("Can't find function word list.")
+        sys.exit()
+    f_words = pickle.load(f)
+    f.close()
+    return f_words
 
 
 def loadSamples():
     """Loads samples and labels from pickle and returns a list of samples, a list of sample labels and a list of label names."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/equalized_samples/"
     try:
         g = open("{}samples_{}.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:
@@ -29,7 +41,7 @@ def loadSamples():
 
 def classifyTestSamples(train_smpls, train_lbls, test_smpls, test_lbls):
     tkn_regex = re.compile(r'[A-Za-z0-9]+')
-    classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=tkn_regex)), ('clf', MultinomialNB())])
+    classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=tkn_regex, vocabulary=function_words)), ('clf', MultinomialNB())])
     classifier = classifier.fit(train_smpls, train_lbls)
     predicted_classes = classifier.predict(test_smpls)
     acc = np.mean(predicted_classes == test_lbls)
@@ -49,14 +61,14 @@ def writeEvalScores(predicted, actual, fold):
     """Calculates TP, FP, TN and FN values relative to total number of samples in cross-fold."""
     conf_matrix = confusion_matrix(actual, predicted)
     if SAMPLE_SIZE == SAMPLE_SIZES[0] and fold == 1:
-        f = open("/Users/tim/GitHub/frankenstein/results/results.csv", "w")
+        f = open("/Users/tim/GitHub/frankenstein/results/equalized_results.csv", "w")
         f.write("sample_size,fold")
         for true_author in label_names:
             for predicted_author in label_names:
                 f.write(",true_" + true_author + "_pred_" + predicted_author)
         f.write("\n")
         f.close()
-    f = open("/Users/tim/GitHub/frankenstein/results/results.csv", "a")
+    f = open("/Users/tim/GitHub/frankenstein/results/equalized_results.csv", "a")
     f.write("{},{}".format(SAMPLE_SIZE, fold))
     for tr_author in label_names:
         for pr_author in label_names:
@@ -83,6 +95,7 @@ def loopThroughCV():
         writeEvalScores(classifier_output, test_labels, counter)
 
 
+function_words = getFunctionWords()
 for SAMPLE_SIZE in SAMPLE_SIZES:
     samples, sample_labels, label_names = loadSamples()
     cv_generator = makeCrossValFolds()

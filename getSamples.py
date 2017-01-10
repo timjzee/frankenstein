@@ -3,7 +3,7 @@ import re
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 
-SAMPLE_SIZES = [200, 400, 800, 1600]
+SAMPLE_SIZES = [100, 200, 400, 800]
 MAX_SAMPLE_SIZE = max(SAMPLE_SIZES)
 # MAX_SAMPLE_SIZE = 2200
 # SAMPLE_SIZE = 200
@@ -55,7 +55,7 @@ def processTexts():
         category_index = len(category_nms) - 1
         f = open(file_path + name, "r", encoding="utf-8")
         text = f.read()
-        f.close
+        f.close()
         word_list = getInfo(text)
         print("Start sampling {} ({} words) with a sample size of {}".format(name, len(word_list), SAMPLE_SIZE))
         text_samples = getSamples(word_list, text)
