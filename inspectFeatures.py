@@ -3,7 +3,7 @@ import re
 import sys
 from sklearn.feature_extraction.text import CountVectorizer
 
-SAMPLE_SIZES = [100, 200, 400, 800]
+SAMPLE_SIZES = [25, 50, 100, 200]
 
 
 def loadTrainSamples():

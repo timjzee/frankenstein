@@ -2,12 +2,16 @@ import sys
 import pickle
 import re
 import numpy as np
+from nltk.tag import pos_tag_sents
+from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
+# from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
+# from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 
 
-SAMPLE_SIZES = [100, 200, 400, 800]
+SAMPLE_SIZES = [25, 50, 100, 200]
 TESTING_METHOD = "groups"
 
 if TESTING_METHOD == "shifts":
@@ -15,6 +19,8 @@ if TESTING_METHOD == "shifts":
     NUMBER_OF_SHIFTS = int(1 / SHIFT_PROPORTION)
 elif TESTING_METHOD == "groups":
     NUMBER_OF_GROUPS = 10
+
+FEATURE_TYPE = "TAGS"
 
 
 def loadFrankenstein():
@@ -140,27 +146,53 @@ def loadSamples(identifier):
     return franken_samples
 
 
+def tagSamples(s_list):
+    """Takes a list of samples and returns a list of tagged samples, where each tagged sample is a continues string of tags seperated by whitespaces. This format is easy to parse for the Scikit Learn vectorizer."""
+    new_list = []
+    for s in s_list:
+        sentences = re.split(r'([;.!?][ "])', s)
+        sentences2 = []
+        for sentence_index in range(0, len(sentences) - 1, 2):
+            sentences2.append(sentences[sentence_index] + sentences[sentence_index + 1])
+        sentences2.append(sentences[-1])
+        tokenized_sentences = [word_tokenize(sentence) for sentence in sentences2]
+        tagged_sentences = pos_tag_sents(tokenized_sentences)
+        tag_list = [tpl[1] for sentence in tagged_sentences for tpl in sentence]
+        tag_string = " ".join(tag_list)
+        new_list.append(tag_string)
+    return new_list
+
+
 def classifyFrankenstein(test_smpls):
     """Classifies Frankenstein samples using samples with known authors."""
     train_lbls = np.array(training_labels)
-    token_regex = re.compile(r'[A-Za-z0-9æëâêô]+')
-    classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=token_regex)), ('clf', MultinomialNB())])
-    classifier = classifier.fit(training_samples, train_lbls)
-    predicted_classes = classifier.predict(test_smpls)
+    if FEATURE_TYPE == "TOKENS":
+        train_lbls = np.array(training_labels)
+        token_regex = re.compile(r'[A-Za-z0-9æëâêô]+')
+        classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=token_regex)), ('clf', SVC(kernel="linear"))])
+        classifier = classifier.fit(training_samples, train_lbls)
+        predicted_classes = classifier.predict(test_smpls)
+    elif FEATURE_TYPE == "TAGS":
+        train_tags = tagSamples(training_samples)
+        test_tags = tagSamples(test_smpls)
+        tag_regex = re.compile(r'[^ ]+')
+        classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=tag_regex, lowercase=False, ngram_range=(2, 2))), ('clf', SVC(kernel="linear"))])
+        classifier = classifier.fit(train_tags, train_lbls)
+        predicted_classes = classifier.predict(test_tags)
     return predicted_classes
 
 
 def writeOutput(predicted, identifier):
     if TESTING_METHOD == "shifts":
         if SAMPLE_SIZE == SAMPLE_SIZES[0] and identifier == 0:
-            f = open("/Users/tim/GitHub/frankenstein/results/franken_results_shifts.csv", "w")
+            f = open("/Users/tim/GitHub/frankenstein/results/franken_results_shifts_" + FEATURE_TYPE + ".csv", "w")
             f.write("sample_size,shift_percentage")
             for author in label_names:
                 f.write(",%_" + author)
             f.write("\n")
             f.close()
         shift_percentage = SHIFT_PROPORTION * 100 * identifier
-        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_shifts.csv", "a")
+        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_shifts_" + FEATURE_TYPE + ".csv", "a")
         f.write("{},{}".format(SAMPLE_SIZE, shift_percentage))
         for name in label_names:
             name_index = label_names.index(name)
@@ -171,13 +203,13 @@ def writeOutput(predicted, identifier):
         f.close()
     elif TESTING_METHOD == "groups":
         if SAMPLE_SIZE == SAMPLE_SIZES[0] and identifier == 1:
-            f = open("/Users/tim/GitHub/frankenstein/results/franken_results_groups.csv", "w")
+            f = open("/Users/tim/GitHub/frankenstein/results/franken_results_groups_" + FEATURE_TYPE + ".csv", "w")
             f.write("sample_size,group")
             for author in label_names:
                 f.write(",%_" + author)
             f.write("\n")
             f.close()
-        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_groups.csv", "a")
+        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_groups_" + FEATURE_TYPE + ".csv", "a")
         f.write("{},{}".format(SAMPLE_SIZE, identifier))
         for name in label_names:
             name_index = label_names.index(name)
@@ -185,6 +217,21 @@ def writeOutput(predicted, identifier):
             percentage = (absolute_count / len(predicted)) * 100
             f.write("," + str(percentage))
         f.write("\n")
+        f.close()
+
+
+def writePBSSamples(pred_classes, group):
+    """Writes a list that provides indices to the samples that were classified as being written by Percy Bysshe Shelley."""
+    if SAMPLE_SIZE == SAMPLE_SIZES[0] and group == 1:
+        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_" + FEATURE_TYPE + "_PBS_samples.csv", "w")
+        f.write("sample_size,group,sample_index\n")
+        f.close()
+    PBS_index = label_names.index("PBS")
+    if PBS_index in pred_classes:
+        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_" + FEATURE_TYPE + "_PBS_samples.csv", "a")
+        sample_indices = [i for i in range(len(pred_classes)) if pred_classes[i] == PBS_index]
+        for index in sample_indices:
+            f.write("{},{},{}\n".format(SAMPLE_SIZE, group, index))
         f.close()
 
 
@@ -202,6 +249,7 @@ def loopThroughSampleStrategy():
             print("Group {}: {} samples".format(group, len(test_samples)))
             classifier_output = classifyFrankenstein(test_samples)
             writeOutput(classifier_output, group)
+            writePBSSamples(classifier_output, group)
 
 
 raw_text = loadFrankenstein()

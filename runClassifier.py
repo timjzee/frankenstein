@@ -2,15 +2,19 @@ import pickle
 import sys
 import re
 import numpy as np
+from nltk.tag import pos_tag_sents
+from nltk.tokenize import word_tokenize
 from sklearn.model_selection import StratifiedKFold
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
+# from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
+# from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
-# from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 
-SAMPLE_SIZES = [100, 200, 400, 800]
+SAMPLE_SIZES = [25, 50, 100, 200]
 NUMBER_OF_CV = 10
+FEATURE_TYPE = "TAGS"
 
 
 def getFunctionWords():
@@ -39,11 +43,36 @@ def loadSamples():
     return smpls, lbls, nms
 
 
+def tagSamples(s_list):
+    """Takes a list of samples and returns a list of tagged samples, where each tagged sample is a continues string of tags seperated by whitespaces. This format is easy to parse for the Scikit Learn vectorizer."""
+    new_list = []
+    for s in s_list:
+        sentences = re.split(r'([;.!?][ "])', s)
+        sentences2 = []
+        for sentence_index in range(0, len(sentences) - 1, 2):
+            sentences2.append(sentences[sentence_index] + sentences[sentence_index + 1])
+        sentences2.append(sentences[-1])
+        tokenized_sentences = [word_tokenize(sentence) for sentence in sentences2]
+        tagged_sentences = pos_tag_sents(tokenized_sentences)
+        tag_list = [tpl[1] for sentence in tagged_sentences for tpl in sentence]
+        tag_string = " ".join(tag_list)
+        new_list.append(tag_string)
+    return new_list
+
+
 def classifyTestSamples(train_smpls, train_lbls, test_smpls, test_lbls):
-    tkn_regex = re.compile(r'[A-Za-z0-9]+')
-    classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=tkn_regex, vocabulary=function_words)), ('clf', MultinomialNB())])
-    classifier = classifier.fit(train_smpls, train_lbls)
-    predicted_classes = classifier.predict(test_smpls)
+    if FEATURE_TYPE == "TOKENS":
+        tkn_regex = re.compile(r'[A-Za-z0-9]+')
+        classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=tkn_regex, vocabulary=function_words)), ('clf', SVC(kernel="linear"))])
+        classifier = classifier.fit(train_smpls, train_lbls)
+        predicted_classes = classifier.predict(test_smpls)
+    elif FEATURE_TYPE == "TAGS":
+        train_tags = tagSamples(train_smpls)
+        test_tags = tagSamples(test_smpls)
+        tag_regex = re.compile(r'[^ ]+')
+        classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=tag_regex, lowercase=False, ngram_range=(2, 2))), ('clf', SVC(kernel="linear"))])
+        classifier = classifier.fit(train_tags, train_lbls)
+        predicted_classes = classifier.predict(test_tags)
     acc = np.mean(predicted_classes == test_lbls)
     print("Mean accuracy:", acc)
     return predicted_classes
@@ -61,14 +90,14 @@ def writeEvalScores(predicted, actual, fold):
     """Calculates TP, FP, TN and FN values relative to total number of samples in cross-fold."""
     conf_matrix = confusion_matrix(actual, predicted)
     if SAMPLE_SIZE == SAMPLE_SIZES[0] and fold == 1:
-        f = open("/Users/tim/GitHub/frankenstein/results/equalized_results.csv", "w")
+        f = open("/Users/tim/GitHub/frankenstein/results/equalized_results_{}-cv_{}.csv".format(NUMBER_OF_CV, FEATURE_TYPE), "w")
         f.write("sample_size,fold")
         for true_author in label_names:
             for predicted_author in label_names:
                 f.write(",true_" + true_author + "_pred_" + predicted_author)
         f.write("\n")
         f.close()
-    f = open("/Users/tim/GitHub/frankenstein/results/equalized_results.csv", "a")
+    f = open("/Users/tim/GitHub/frankenstein/results/equalized_results_{}-cv_{}.csv".format(NUMBER_OF_CV, FEATURE_TYPE), "a")
     f.write("{},{}".format(SAMPLE_SIZE, fold))
     for tr_author in label_names:
         for pr_author in label_names:

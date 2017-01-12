@@ -3,10 +3,8 @@ import re
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 
-SAMPLE_SIZES = [100, 200, 400, 800]
+SAMPLE_SIZES = [25, 50, 100, 200]
 MAX_SAMPLE_SIZE = max(SAMPLE_SIZES)
-# MAX_SAMPLE_SIZE = 2200
-# SAMPLE_SIZE = 200
 
 
 def getFileNames():
