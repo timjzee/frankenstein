@@ -7,7 +7,7 @@ Authorship attribution of Frankenstein
 ![alt text](https://github.com/timjzee/frankenstein/blob/master/sample_size.png?raw=true "Hypothesis")
 
 
-**Results**: The percentage of samples classified as PBS at different sample sizes support the hypothesis if the classifier is trained on Part-of-Speech bigram frequency (see figure below).
+**Results**: The percentage of samples classified as PBS at different sample sizes support the hypothesis if the classifier is trained on Part-of-Speech bigram frequency. This is evidenced by the result that, as sample sizes get smaller, the percentage of PBS classifications go up before they go down (see *tags* in figure below). This is due to the way the sampling process interacts with the chunks of PBS-authored texts in Frankenstein, see figure above.
 
 ![alt text](https://github.com/timjzee/frankenstein/blob/master/percentage_testset.png?raw=true "Percentage of PBS classification")
 
