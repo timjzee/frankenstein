@@ -3,12 +3,12 @@ import re
 import sys
 from sklearn.feature_extraction.text import CountVectorizer
 
-SAMPLE_SIZES = [25, 50, 100, 200]
+SAMPLE_SIZES = [25, 50, 100, 200, 400]
 
 
 def loadTrainSamples():
     """Loads samples and labels from pickle and returns a list of samples, a list of sample labels and a list of label names."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check2/"
     try:
         g = open("{}samples_{}.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:
@@ -53,7 +53,7 @@ def getFewestSamples():
 
 def saveNewSamples():
     """Save sample lists with equal amount of samples per author."""
-    new_samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/equalized_samples/"
+    new_samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check2/equalized/"
     samples_structure = [new_smpls, new_lbls, names]
     g = open(new_samples_path + "samples_" + str(SAMPLE_SIZE) + ".pck", "wb")
     pickle.dump(samples_structure, g)

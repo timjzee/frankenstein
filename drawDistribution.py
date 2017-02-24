@@ -4,12 +4,12 @@ import turtle
 from tkinter import *
 
 
-SAMPLE_SIZE = 400
+SAMPLE_SIZE = 25
 
 
 def getSamplingInfo():
     """Gets number of samples per group."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/franken_samples/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check_PBS/franken/"
     try:
         f = open("{}samples_{}-g1.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:
@@ -29,9 +29,9 @@ def getSamplingInfo():
 
 def getPBSSamples():
     """Gets samples classified as PBS."""
-    results_path = "/Users/tim/GitHub/frankenstein/results/two_authors/"
+    results_path = "/Users/tim/GitHub/frankenstein/results/check_unbalanced_PBS/"
     try:
-        f = open(results_path + "svm_franken_results_TAGS_PBS_samples_25-800.csv", "r")
+        f = open(results_path + "franken_results_TOKENS_PBS_samples.csv", "r")
     except:
         print("Can't find results file.")
         sys.exit()

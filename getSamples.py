@@ -3,7 +3,7 @@ import re
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 
-SAMPLE_SIZES = [25, 50, 100, 200]
+SAMPLE_SIZES = [25, 50, 100, 200, 400]
 MAX_SAMPLE_SIZE = max(SAMPLE_SIZES)
 
 
@@ -65,7 +65,7 @@ def processTexts():
 
 def saveSamples():
     """Save samples, category_labels and category_names to a pickle of a list."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check2/"
     samples_structure = [samples, category_labels, category_names]
     g = open(samples_path + "samples_" + str(SAMPLE_SIZE) + ".pck", "wb")
     pickle.dump(samples_structure, g)

@@ -11,7 +11,7 @@ from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 
 
-SAMPLE_SIZES = [25, 50, 100, 200]
+SAMPLE_SIZES = [25, 50, 100, 200, 400]
 TESTING_METHOD = "groups"
 
 if TESTING_METHOD == "shifts":
@@ -31,6 +31,18 @@ def loadFrankenstein():
     return text
 
 
+def getFunctionWords():
+    """Gets list of function words for feature vector."""
+    try:
+        f = open("/Users/tim/GitHub/frankenstein/function_words.pck", "rb")
+    except:
+        print("Can't find function word list.")
+        sys.exit()
+    f_words = pickle.load(f)
+    f.close()
+    return f_words
+
+
 def getTokens():
     tkn_regex = re.compile(r'[A-Za-z0-9æëâêô]+')
     count_vect = CountVectorizer(analyzer='word', token_pattern=tkn_regex)
@@ -41,7 +53,7 @@ def getTokens():
 
 def loadTrainingSamples():
     """Loads samples and labels from pickle and returns a list of samples, a list of sample labels and a list of label names."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/known_samples/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check/"
     try:
         g = open("{}samples_{}.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:
@@ -124,7 +136,7 @@ def getGroupedSamples(group_num):
 
 def loadSamples(identifier):
     """Checks whether samples have already been made and either loads them or calls a function to make them."""
-    franken_smpls_path = "/Users/tim/GitHub/frankenstein/sampled_texts/franken_samples/"
+    franken_smpls_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check/franken/"
     if TESTING_METHOD == "shifts":
         try:
             f = open("{}samples_{}-s{}.pck".format(franken_smpls_path, SAMPLE_SIZE, identifier), "rb")
@@ -169,7 +181,7 @@ def classifyFrankenstein(test_smpls):
     if FEATURE_TYPE == "TOKENS":
         train_lbls = np.array(training_labels)
         token_regex = re.compile(r'[A-Za-z0-9æëâêô]+')
-        classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=token_regex)), ('clf', SVC(kernel="linear"))])
+        classifier = Pipeline([('vect', CountVectorizer(analyzer='word', token_pattern=token_regex, vocabulary=function_words)), ('clf', SVC(kernel="linear"))])
         classifier = classifier.fit(training_samples, train_lbls)
         predicted_classes = classifier.predict(test_smpls)
     elif FEATURE_TYPE == "TAGS":
@@ -185,14 +197,14 @@ def classifyFrankenstein(test_smpls):
 def writeOutput(predicted, identifier):
     if TESTING_METHOD == "shifts":
         if SAMPLE_SIZE == SAMPLE_SIZES[0] and identifier == 0:
-            f = open("/Users/tim/GitHub/frankenstein/results/franken_results_shifts_" + FEATURE_TYPE + ".csv", "w")
+            f = open("/Users/tim/GitHub/frankenstein/results/check4/franken_results_shifts_" + FEATURE_TYPE + ".csv", "w")
             f.write("sample_size,shift_percentage")
             for author in label_names:
                 f.write(",%_" + author)
             f.write("\n")
             f.close()
         shift_percentage = SHIFT_PROPORTION * 100 * identifier
-        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_shifts_" + FEATURE_TYPE + ".csv", "a")
+        f = open("/Users/tim/GitHub/frankenstein/results/check4/franken_results_shifts_" + FEATURE_TYPE + ".csv", "a")
         f.write("{},{}".format(SAMPLE_SIZE, shift_percentage))
         for name in label_names:
             name_index = label_names.index(name)
@@ -203,13 +215,13 @@ def writeOutput(predicted, identifier):
         f.close()
     elif TESTING_METHOD == "groups":
         if SAMPLE_SIZE == SAMPLE_SIZES[0] and identifier == 1:
-            f = open("/Users/tim/GitHub/frankenstein/results/franken_results_groups_" + FEATURE_TYPE + ".csv", "w")
+            f = open("/Users/tim/GitHub/frankenstein/results/check4/franken_results_groups_" + FEATURE_TYPE + ".csv", "w")
             f.write("sample_size,group")
             for author in label_names:
                 f.write(",%_" + author)
             f.write("\n")
             f.close()
-        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_groups_" + FEATURE_TYPE + ".csv", "a")
+        f = open("/Users/tim/GitHub/frankenstein/results/check4/franken_results_groups_" + FEATURE_TYPE + ".csv", "a")
         f.write("{},{}".format(SAMPLE_SIZE, identifier))
         for name in label_names:
             name_index = label_names.index(name)
@@ -223,12 +235,12 @@ def writeOutput(predicted, identifier):
 def writePBSSamples(pred_classes, group):
     """Writes a list that provides indices to the samples that were classified as being written by Percy Bysshe Shelley."""
     if SAMPLE_SIZE == SAMPLE_SIZES[0] and group == 1:
-        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_" + FEATURE_TYPE + "_PBS_samples.csv", "w")
+        f = open("/Users/tim/GitHub/frankenstein/results/check4/franken_results_" + FEATURE_TYPE + "_PBS_samples.csv", "w")
         f.write("sample_size,group,sample_index\n")
         f.close()
-    PBS_index = label_names.index("PBS")
+    PBS_index = label_names.index("LAM")
     if PBS_index in pred_classes:
-        f = open("/Users/tim/GitHub/frankenstein/results/franken_results_" + FEATURE_TYPE + "_PBS_samples.csv", "a")
+        f = open("/Users/tim/GitHub/frankenstein/results/check4/franken_results_" + FEATURE_TYPE + "_PBS_samples.csv", "a")
         sample_indices = [i for i in range(len(pred_classes)) if pred_classes[i] == PBS_index]
         for index in sample_indices:
             f.write("{},{},{}\n".format(SAMPLE_SIZE, group, index))
@@ -253,6 +265,7 @@ def loopThroughSampleStrategy():
 
 
 raw_text = loadFrankenstein()
+function_words = getFunctionWords()
 tokens = getTokens()
 for SAMPLE_SIZE in SAMPLE_SIZES:
     training_samples, training_labels, label_names = loadTrainingSamples()

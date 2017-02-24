@@ -12,7 +12,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
 
-SAMPLE_SIZES = [25, 50, 100, 200]
+SAMPLE_SIZES = [25, 50, 100, 200, 400]
 NUMBER_OF_CV = 10
 FEATURE_TYPE = "TAGS"
 
@@ -31,7 +31,7 @@ def getFunctionWords():
 
 def loadSamples():
     """Loads samples and labels from pickle and returns a list of samples, a list of sample labels and a list of label names."""
-    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/equalized_samples/"
+    samples_path = "/Users/tim/GitHub/frankenstein/sampled_texts/check/"
     try:
         g = open("{}samples_{}.pck".format(samples_path, SAMPLE_SIZE), "rb")
     except:
@@ -90,14 +90,14 @@ def writeEvalScores(predicted, actual, fold):
     """Calculates TP, FP, TN and FN values relative to total number of samples in cross-fold."""
     conf_matrix = confusion_matrix(actual, predicted)
     if SAMPLE_SIZE == SAMPLE_SIZES[0] and fold == 1:
-        f = open("/Users/tim/GitHub/frankenstein/results/equalized_results_{}-cv_{}.csv".format(NUMBER_OF_CV, FEATURE_TYPE), "w")
+        f = open("/Users/tim/GitHub/frankenstein/results/check4/equalized_results_{}-cv_{}.csv".format(NUMBER_OF_CV, FEATURE_TYPE), "w")
         f.write("sample_size,fold")
         for true_author in label_names:
             for predicted_author in label_names:
                 f.write(",true_" + true_author + "_pred_" + predicted_author)
         f.write("\n")
         f.close()
-    f = open("/Users/tim/GitHub/frankenstein/results/equalized_results_{}-cv_{}.csv".format(NUMBER_OF_CV, FEATURE_TYPE), "a")
+    f = open("/Users/tim/GitHub/frankenstein/results/check4/equalized_results_{}-cv_{}.csv".format(NUMBER_OF_CV, FEATURE_TYPE), "a")
     f.write("{},{}".format(SAMPLE_SIZE, fold))
     for tr_author in label_names:
         for pr_author in label_names:
