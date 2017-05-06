@@ -1,4 +1,4 @@
-known_dataset <- read.csv("/Users/tim/GitHub/frankenstein/results/check2/equalized_results_10-cv_BOTH.csv")
+known_dataset <- read.csv("/Users/tim/GitHub/frankenstein/results/check_balanced_PBS/equalized_results_10-cv_BOTH.csv")
 
 known_dataset$MWS_precision = known_dataset$true_MWS_pred_MWS / (known_dataset$true_MWS_pred_MWS + known_dataset$true_PBS_pred_MWS)
 known_dataset$PBS_precision = known_dataset$true_PBS_pred_PBS / (known_dataset$true_PBS_pred_PBS + known_dataset$true_MWS_pred_PBS)
