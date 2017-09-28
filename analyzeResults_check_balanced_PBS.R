@@ -23,7 +23,7 @@ interaction.plot(known_dataset2$sample_size, known_dataset2$feature_type, known_
 
 ##################
 
-franken_dataset = read.csv("/Users/tim/GitHub/frankenstein/results/check2/franken_results_groups_BOTH.csv")
+franken_dataset = read.csv("/Users/tim/GitHub/frankenstein/results/check_balanced_PBS/franken_results_groups_BOTH.csv")
 
 franken_dataset2 = franken_dataset[franken_dataset$sample_size < 800,]
 franken_dataset2$sample_size = factor(franken_dataset2$sample_size)

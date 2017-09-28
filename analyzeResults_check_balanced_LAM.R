@@ -1,4 +1,4 @@
-known_dataset <- read.csv("/Users/tim/GitHub/frankenstein/results/check/equalized_results_10-cv_BOTH.csv")
+known_dataset <- read.csv("/Users/tim/GitHub/frankenstein/results/check_balanced_LAM/equalized_results_10-cv_BOTH.csv")
 
 known_dataset$MWS_precision = known_dataset$true_MWS_pred_MWS / (known_dataset$true_MWS_pred_MWS + known_dataset$true_LAM_pred_MWS)
 known_dataset$LAM_precision = known_dataset$true_LAM_pred_LAM / (known_dataset$true_LAM_pred_LAM + known_dataset$true_MWS_pred_LAM)
@@ -23,7 +23,7 @@ interaction.plot(known_dataset2$sample_size, known_dataset2$feature_type, known_
 
 ##################
 
-franken_dataset = read.csv("/Users/tim/GitHub/frankenstein/results/check/franken_results_groups_BOTH.csv")
+franken_dataset = read.csv("/Users/tim/GitHub/frankenstein/results/check_balanced_LAM/franken_results_groups_BOTH.csv")
 
 franken_dataset2 = franken_dataset[franken_dataset$sample_size < 800,]
 franken_dataset2$sample_size = factor(franken_dataset2$sample_size)
